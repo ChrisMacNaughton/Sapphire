@@ -43,6 +43,10 @@ module Sapphire
       @expressions[i]
     end
 
+    def last
+      @expressions.last
+    end
+
     def <<(exp)
       exp.parent = self
       @expressions << exp
