@@ -14,12 +14,12 @@ module Sapphire
 
       if eos?
         @token.type = :EOF
-      elsif scan /\n/
+      elsif scan(/\n/)
         @token.type = :NEWLINE
         @line_number += 1
-      elsif scan /\s+/
+      elsif scan(/\s+/)
         @token.type = :SPACE
-      elsif scan /;+/
+      elsif scan(/;+/)
         @token.type = :";"
       elsif match = scan(/(\+|-)?\d+\.\d+/)
         @token.type = :FLOAT
@@ -47,12 +47,12 @@ module Sapphire
       elsif match = scan(/[a-zA-Z_][a-zA-Z_0-9]*(\?|!)?/)
         @token.type = :IDENT
         @token.value = match
-      elsif scan /#/
-        if scan /.*\n/
+      elsif scan(/#/)
+        if scan(/.*\n/)
           @token.type = :NEWLINE
           @line_number += 1
         else
-          scan /.*/
+          scan(/.*/)
           @token.type = :EOF
         end
       else

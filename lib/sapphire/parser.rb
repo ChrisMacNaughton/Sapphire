@@ -368,7 +368,7 @@ module Sapphire
         skip_statement_end
       end
 
-      push_var *block_args
+      push_var(*block_args)
 
       block_body = parse_expressions
 
