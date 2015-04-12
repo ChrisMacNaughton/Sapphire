@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe Parser do
+RSpec.describe Parser do
   def self.it_parses(string, expected_nodes, options = {})
     it "parses #{string}", options do
       node = Parser.parse(string)
-      node.should eq(Expressions.new expected_nodes)
+      expect(node).to eq(Expressions.new expected_nodes)
     end
   end
 

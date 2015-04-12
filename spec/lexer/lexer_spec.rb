@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-describe Lexer do
+RSpec.describe Lexer do
   def self.it_lexes(string, type, value = nil)
     it "lexes #{string}" do
       lexer = Lexer.new(string)
       token = lexer.next_token
-      token.type.should eq(type)
-      token.value.should eq(value)
+      expect(token.type).to eq(type)
+      expect(token.value).to eq(value)
     end
   end
 
@@ -68,15 +68,15 @@ describe Lexer do
   it "lexes comment and token" do
     lexer = Lexer.new "# comment\n1"
     token = lexer.next_token
-    token.type.should eq(:NEWLINE)
+    expect(token.type).to eq(:NEWLINE)
     token = lexer.next_token
-    token.type.should eq(:INT)
-    token.value.should eq("1")
+    expect(token.type).to eq(:INT)
+    expect(token.value).to eq("1")
   end
 
   it "lexes comment at the end" do
     lexer = Lexer.new "# comment"
     token = lexer.next_token
-    token.type.should eq(:EOF)
+    expect(token.type).to eq(:EOF)
   end
 end
