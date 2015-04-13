@@ -29,6 +29,7 @@ module Sapphire
       @entry = @main.basic_blocks.append("entry")
       @builder = LLVM::Builder.new
       @builder.position_at_end(@entry)
+      @vars = {}
     end
 
     def end_visit_expressions(node)
@@ -41,6 +42,23 @@ module Sapphire
 
     def visit_float(node)
       @last = LLVM::Float(node.value.to_f)
+    end
+
+    def visit_assign(node)
+      node.value.accept self
+
+      var = @vars[node.target.name]
+      unless var
+        var = @vars[node.target.name] = @builder.alloca node.type.llvm_type, node.target.name
+      end
+      @builder.store @last, var
+
+      false
+    end
+
+    def visit_var(node)
+      var = @vars[node.name]
+      @last = @builder.load var, node.name
     end
   end
 
