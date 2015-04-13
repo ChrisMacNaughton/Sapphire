@@ -1,6 +1,10 @@
 require 'spec_helper'
 
 RSpec.describe 'Code Gen: primitives' do
+  it 'codegens bool' do
+    expect(run('true').to_b).to eq(true)
+  end
+
   it 'codegens int' do
     expect(run('1').to_i).to eq(1)
   end
