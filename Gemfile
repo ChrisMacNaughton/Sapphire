@@ -1,4 +1,10 @@
 source 'https://rubygems.org'
 
 gem 'rake'
-gem 'rspec'
+gem 'ruby-llvm'
+
+
+group :development do
+  gem 'pry'
+  gem 'rspec'
+end
