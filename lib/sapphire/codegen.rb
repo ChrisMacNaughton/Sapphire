@@ -28,9 +28,10 @@ module Sapphire
     def initialize(return_type)
       @mod = LLVM::Module.new("Sapphire")
       @main = @mod.functions.add("sapphire_main", [], return_type.llvm_type)
-      @entry = @main.basic_blocks.append("entry")
+      entry = @main.basic_blocks.append("entry")
       @builder = LLVM::Builder.new
-      @builder.position_at_end(@entry)
+      @builder.position_at_end(entry)
+      @defs = {}
       @vars = {}
     end
 
@@ -68,6 +69,24 @@ module Sapphire
     def visit_var(node)
       var = @vars[node.name]
       @last = @builder.load var[:ptr], node.name
+    end
+
+    def visit_def(node)
+      if node.instances
+        old_position = @builder.insert_block
+        node.instances.each do |instance|
+          fun = @defs[instance.name] = @mod.functions.add(instance.name, [], instance.body.type.llvm_type)
+          entry = fun.basic_blocks.append('entry')
+          @builder.position_at_end(entry)
+          instance.body.accept self
+        end
+        @builder.position_at_end old_position
+      end
+      false
+    end
+
+    def visit_call(node)
+      @last = @builder.call @defs[node.name], node.name
     end
   end
 
