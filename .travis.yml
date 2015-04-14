@@ -8,7 +8,11 @@ rvm:
 script: bundle exec rspec
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y llvm
+  - sudo apt-get install -y python-software-properties
+  - sudo add-apt-repository 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main'
+  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
+  - sudo apt-get update
+  - sudo apt-get install llvm-3.3
 addons:
   code_climate:
     repo_token: bbe84caebb7ae7e26e9f29e177aa09881dcbc0f790c8ff30c416afead598eb17
