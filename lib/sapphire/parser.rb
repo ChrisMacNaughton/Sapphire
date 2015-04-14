@@ -27,14 +27,6 @@ module Sapphire
     end
 
     def parse_expression
-      parse_primary_expression
-    end
-
-    def parse_primary_expression
-      parse_modified_expression
-    end
-
-    def parse_modified_expression
       line_number = @token.line_number
 
       atomic = parse_op_assign
