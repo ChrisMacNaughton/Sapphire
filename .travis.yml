@@ -6,6 +6,9 @@ rvm:
   - 2.1.5
   - 2.2.0
 script: bundle exec rspec
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y llvm
 addons:
   code_climate:
     repo_token: bbe84caebb7ae7e26e9f29e177aa09881dcbc0f790c8ff30c416afead598eb17
