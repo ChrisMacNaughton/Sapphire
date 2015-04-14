@@ -1,8 +1,24 @@
 module Sapphire
   # Base class for nodes in the grammar.
   class ASTNode
-    attr_accessor :line_number
+    attr_writer :line_number, :column_number
     attr_accessor :parent
+
+    def location
+      [line_number, column_number]
+    end
+
+    def location=(line_and_column_number)
+      @line_number, @column_number = line_and_column_number
+    end
+
+    def line_number
+      defined?(@line_number) ? @line_number : 0
+    end
+
+    def column_number
+      defined?(@column_number) ? @column_number : 0
+    end
   end
 
   # A container for one or many expressions.
@@ -65,7 +81,7 @@ module Sapphire
 
     def clone
       exps = self.class.new expressions.map(&:clone)
-      exps.line_number = line_number
+      exps.location = location
       exps
     end
   end
@@ -99,7 +115,7 @@ module Sapphire
 
     def clone
       class_def = self.class.new name, body.clone, superclass
-      class_def.line_number = line_number
+      class_def.location = location
       class_def
     end
   end
@@ -268,7 +284,7 @@ module Sapphire
 
     def clone
       a_def = self.class.new name, args.map(&:clone), body.clone, receiver ? receiver.clone : nil
-      a_def.line_number = line_number
+      a_def.location = location
       a_def
     end
   end
@@ -301,7 +317,7 @@ module Sapphire
 
     def clone
       var = self.class.new name
-      var.line_number = line_number
+      var.location = location
       var
     end
   end
@@ -320,12 +336,9 @@ module Sapphire
   # the symbol of that operator instead of a string.
   #
   class Call < ASTNode
-    attr_accessor :obj
-    attr_accessor :name
-    attr_accessor :args
-    attr_accessor :block
+    attr_accessor :obj, :name, :args, :block, :name_column_number
 
-    def initialize(obj, name, args = [], block = nil)
+    def initialize(obj, name, args = [], block = nil, name_column_number = nil)
       @obj = obj
       @obj.parent = self if @obj
       @name = name
@@ -333,6 +346,7 @@ module Sapphire
       @args.each { |arg| arg.parent = self }
       @block = block
       @block.parent = self if @block
+      @name_column_number  = name_column_number
     end
 
     def accept(visitor)
@@ -350,8 +364,12 @@ module Sapphire
 
     def clone
       call = self.class.new obj ? obj.clone : nil, name, args.map(&:clone), block ? block.clone : nil
-      call.line_number = line_number
+      call.location = location
       call
+    end
+
+    def name_column_number
+      @name_column_number || column_number
     end
   end
 
@@ -396,7 +414,7 @@ module Sapphire
 
     def clone
       a_if = self.class.new cond.clone, self.then.clone, self.else.clone
-      a_if.line_number = line_number
+      a_if.location = location
       a_if
     end
   end
@@ -430,7 +448,7 @@ module Sapphire
 
     def clone
       assign = self.class.new target.clone, value.clone
-      assign.line_number = line_number
+      assign.location = location
       assign
     end
   end
@@ -466,7 +484,7 @@ module Sapphire
 
     def clone
       a_while = self.class.new cond.clone, body.clone
-      a_while.line_number = line_number
+      a_while.location = location
       a_while
     end
   end
@@ -504,7 +522,7 @@ module Sapphire
 
     def clone
       block = self.class.new args.map(&:clone), body.clone
-      block.line_number = line_number
+      block.location = location
       block
     end
   end
@@ -540,7 +558,7 @@ module Sapphire
 
         def clone
           ret = self.class.new exps.clone
-          ret.line_number = line_number
+          ret.location = location
           ret
         end
       end
