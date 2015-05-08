@@ -1,0 +1,1 @@
+# Sapphire is a compiled language with a Ruby like syntax
