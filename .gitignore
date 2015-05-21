@@ -1,2 +1,6 @@
 tmp
 *.s
+*.o
+testargs
+parser
+parser2
