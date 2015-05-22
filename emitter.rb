@@ -1,4 +1,3 @@
-
 class Emitter
   PTR_SIZE = 4 # Point size in bytes.  We are evil and assume 32bit arch. for now
 
@@ -20,6 +19,12 @@ class Emitter
 
   def local_arg(aparam)
     "#{PTR_SIZE*(aparam+2)}(%ebp)"
+  end
+
+  def local_var(aparam)
+    # +2 instead of +1 because %ecx is pushed onto the stack in main, 
+    # In any variadic function we push :numargs from %ebx into -4(%ebp) 
+    "-#{PTR_SIZE*(aparam+2)}(%ebp)"
   end
 
   def label(l)
@@ -56,11 +61,23 @@ class Emitter
   end
 
   def save_result(param)
-    movl(param,:eax)
+    movl(param,:eax) if param != :eax
   end
 
   def load_arg(aparam)
     movl(local_arg(aparam),:eax)
+  end
+
+  def load_arg_address(aparam) 
+    leal(local_arg(aparam),:eax) 
+  end 
+
+  def load_local_var(aparam)
+    movl(local_var(aparam),:eax)
+  end
+
+  def save_to_local_var(arg,aparam)
+    movl(arg,local_var(aparam))
   end
 
   def save_to_arg(arg,aparam)
@@ -71,16 +88,17 @@ class Emitter
     save_result(addr_value(label))
   end
 
-  def load_arg_address(aparam)
-    leal(local_arg(aparam), :eax)
+  def with_local(args)
+    # FIXME: The "+1" is a hack because main contains a pushl %ecx
+    with_stack(args+1) { yield }
   end
 
-  def with_stack(args, numargs = false)
+  def with_stack(args,numargs=false)
     # gcc does 4 bytes regardless of arguments, and then jumps up 16 at a time
     # We will do the same, but assume its tied to pointer size
     adj = PTR_SIZE + (((args+0.5)*PTR_SIZE/(4.0*PTR_SIZE)).round) * (4*PTR_SIZE)
     subl(adj,:esp)
-    movl(args, :ebx) if numargs
+    movl(args,:ebx) if numargs
     yield
     addl(adj,:esp)
   end
@@ -114,28 +132,6 @@ class Emitter
   def get_local
     @seq +=1
     ".L#{@seq-1}"
-  end
-
-  def local_var(aparam)
-    # FIXME: The +2 instead of +1 is ecause %ecx is pushed onto the stack in "main". It's really only needed there. 
-    "-#{PTR_SIZE*(aparam+2)}(%ebp)"
-  end
-
-  def load_local_var(aparam)
-    movl(local_var(aparam),:eax)
-  end
-
-
-
-  def save_to_local_var(arg,aparam)
-    movl(arg,local_var(aparam))
-  end
-
-
-
-  def with_local(args)
-    # FIXME: The "+1" is a hack because main contains a pushl %ecx 
-    with_stack(args+1) { yield }
   end
 
   def loop

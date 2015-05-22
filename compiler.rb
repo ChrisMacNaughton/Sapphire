@@ -4,6 +4,7 @@ require File.join(File.dirname(__FILE__), "emitter")
 require File.join(File.dirname(__FILE__), "lib", "function")
 require File.join(File.dirname(__FILE__), "lib", "arg")
 require File.join(File.dirname(__FILE__), "lib", "scope")
+require File.join(File.dirname(__FILE__), "lib", "parser")
 require File.join(File.dirname(__FILE__), "lib", "local_var_scope")
 
 DO_BEFORE= [ 
@@ -43,7 +44,7 @@ class Compiler
     end
   end
 
-  def compile_defun scope,name, args, body
+  def compile_defun scope, name, args, body
     @global_functions[name] = Function.new(args,body)
     return [:addr,name]
   end
@@ -181,3 +182,29 @@ class Compiler
     compile_main([:do, DO_BEFORE, exp, DO_AFTER]) 
   end  
 end
+
+s = Scanner.new(STDIN)
+prog = nil
+
+dump = false
+ARGV.each do |opt|
+  dump = true if opt == '--parsetree'
+end
+
+begin
+  prog = Parser.new(s).parse
+rescue Exception => e
+  STDERR.puts "#{e.message}"
+  STDERR.puts "Failed before:\n"
+  buf = ""
+  while s.peek && buf.size < 100
+    buf += s.get
+  end
+  STDERR.puts buf
+end
+
+if prog && dump
+  PP.pp prog
+  exit
+end
+Compiler.new.compile(prog) if prog
