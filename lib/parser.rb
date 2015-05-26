@@ -1,5 +1,6 @@
 require File.join(File.dirname(__FILE__), "sexp")
 require File.join(File.dirname(__FILE__), "parser_base")
+require File.join(File.dirname(__FILE__), 'utils')
 
 class Parser < ParserBase
 
@@ -61,7 +62,9 @@ class Parser < ParserBase
     raise "Expected function name" unless (name = parse_name)
     args = parse_args
     @s.ws
-    exps = [:do] + zero_or_more(:defexp)
+    exps = zero_or_more(:defexp)
+    vars = deep_collect(exps, Array) {|node| node[0] == :assign ? node[1] : nil}
+    exps = [:let, vars] + exps
     raise "Expected expression of 'end'" unless @s.expect("end")
     return [:defun, name, args, exps]
   end
